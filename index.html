@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Issue Tracker Shell</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                500: '#0ea5e9',
+                600: '#0284c7'
+              }
+            },
+            boxShadow: {
+              soft: '0 18px 45px rgba(15,23,42,0.18)'
+            }
+          }
+        }
+      };
+    </script>
+
+    <style>
+      /* ทำให้ iframe กินความสูงเท่าหน้าจอ - เผื่อ header */
+      .app-iframe {
+        width: 100%;
+        border: 0;
+        /* 100vh - (สูงของ header ประมาณ 64px) */
+        height: calc(100vh - 72px);
+      }
+
+      @media (max-width: 640px) {
+        .app-iframe {
+          height: calc(100vh - 88px);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="h-full bg-slate-950 text-slate-50 flex flex-col transition-colors duration-300"
+  >
+    <!-- Top Shell UI -->
+    <header
+      class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-20"
+    >
+      <div
+        class="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-3"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="h-9 w-9 rounded-2xl bg-gradient-to-tr from-brand-500 via-sky-500 to-cyan-400 flex items-center justify-center shadow-soft"
+          >
+            <span class="text-xs font-semibold text-white">IT</span>
+          </div>
+          <div>
+            <div class="text-sm font-semibold tracking-tight">
+              Mini Issue Tracker
+            </div>
+            <div class="text-[11px] text-slate-400">
+              GitHub Pages shell · Apps Script iframe
+            </div>
+          </div>
+        </div>
+
+        <!-- ถ้าอยากใส่ปุ่ม Dark/Light ที่ครอบทั้ง shell ก็เพิ่มได้ -->
+        <button
+          id="shell-theme-toggle"
+          class="inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1 text-[11px] font-medium text-slate-200 hover:bg-slate-800/80"
+        >
+          <span id="shell-theme-icon">☀️</span>
+          <span class="hidden sm:inline" id="shell-theme-label">Light shell</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ตัว Container ด้านนอก -->
+    <main class="flex-1">
+      <div class="max-w-6xl mx-auto px-0 sm:px-3 pt-1">
+        <!-- IFRAME: Apps Script Web App -->
+        <iframe
+          id="apps-script-frame"
+          class="app-iframe rounded-none sm:rounded-2xl overflow-hidden bg-slate-950"
+          src="https://script.google.com/macros/s/AKfycbw-KvbTDSe9_Rd2OTMnsGui9AMyBZvf1ABluKGy-fMSyq192IKoBGhmgs2lSmhREllEEw/exec"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </main>
+
+    <script>
+      // ===== Shell Theme Toggle (แค่เปลี่ยนสีด้านนอก iframe) =====
+      const htmlEl = document.documentElement;
+      const shellToggle = document.getElementById('shell-theme-toggle');
+      const shellIcon = document.getElementById('shell-theme-icon');
+      const shellLabel = document.getElementById('shell-theme-label');
+
+      function applyShellTheme(theme) {
+        if (theme === 'light') {
+          htmlEl.classList.remove('dark');
+          shellIcon.textContent = '🌙';
+          if (shellLabel) shellLabel.textContent = 'Dark shell';
+        } else {
+          htmlEl.classList.add('dark');
+          shellIcon.textContent = '☀️';
+          if (shellLabel) shellLabel.textContent = 'Light shell';
+        }
+        localStorage.setItem('shell-theme', theme);
+      }
+
+      (function initShellTheme() {
+        const stored = localStorage.getItem('shell-theme');
+        if (stored === 'light' || stored === 'dark') {
+          applyShellTheme(stored);
+        } else {
+          const prefersDark = window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+          applyShellTheme(prefersDark ? 'dark' : 'light');
+        }
+      })();
+
+      shellToggle.addEventListener('click', () => {
+        const isDark = htmlEl.classList.contains('dark');
+        applyShellTheme(isDark ? 'light' : 'dark');
+      });
+
+      // ===== Optional: ปรับความสูง iframe ให้พอดีกับหน้าจอเวลา resize =====
+      function resizeIframe() {
+        const iframe = document.getElementById('apps-script-frame');
+        if (!iframe) return;
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.offsetHeight : 0;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        iframe.style.height = vh - headerHeight - 8 + 'px'; // -8 เผื่อ margin นิดหน่อย
+      }
+
+      window.addEventListener('load', resizeIframe);
+      window.addEventListener('resize', resizeIframe);
+    </script>
+  </body>
+</html>
